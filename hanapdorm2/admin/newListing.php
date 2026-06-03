@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ";
 
     $stmt = $conn->prepare($query); 
-    $stmt->bind_param("issssddiii", $owner_id, $dorm_name, $description, $address, $latitude, $longitude, $monthly_rent, $available_rooms, $total_rooms, $room_capacity);
+    $stmt->bind_param("isssdddiii", $owner_id, $dorm_name, $description, $address, $latitude, $longitude, $monthly_rent, $available_rooms, $total_rooms, $room_capacity);
 
     if ($stmt->execute()) {
         $dorm_id = $conn->insert_id;

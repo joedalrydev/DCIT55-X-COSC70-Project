@@ -21,7 +21,7 @@ try {
             d.monthly_rent,
             (SELECT image_url FROM dorm_images di WHERE di.dorm_id = d.dorm_id LIMIT 1) AS image_url
         FROM dorms d 
-        ORDER BY d.created_at DESC
+        ORDER BY d.dorm_id DESC
     ";
     $result = mysqli_query($conn, $sql);
 

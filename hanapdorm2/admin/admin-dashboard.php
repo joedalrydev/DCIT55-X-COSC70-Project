@@ -27,8 +27,34 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
     }
 }, E_ALL);
 
+// Catch uncaught exceptions (like mysqli_sql_exception in PHP 8.1+)
+set_exception_handler(function($e) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['json'])) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Database Error: ' . $e->getMessage()
+        ]);
+        exit;
+    }
+});
+
+// Catch fatal errors that bypass standard error handlers
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['json'])) {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Fatal Error: ' . $error['message']]);
+            exit;
+        }
+    }
+});
+
 session_start();
-include ("../database/database.php");
+require_once __DIR__ . '/../database/database.php';
 
 // Check database connection
 if (!$conn) {
@@ -65,10 +91,17 @@ $query = "
         monthly_rent
     FROM dorms
     WHERE owner_id = ?
-    ORDER BY created_at DESC
+    ORDER BY dorm_id DESC
 ";
 
 $stmt = $conn->prepare($query);
+if (!$stmt) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Query preparation failed (dorms): ' . $conn->error]);
+    exit();
+}
+
 $stmt->bind_param('i', $owner_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -90,6 +123,13 @@ $bookingQuery = "
 ";
 
 $bookingStmt = $conn->prepare($bookingQuery);
+if (!$bookingStmt) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Query preparation failed (booking stats): ' . $conn->error]);
+    exit();
+}
+
 $bookingStmt->bind_param('i', $owner_id);
 $bookingStmt->execute();
 $bookingResult = $bookingStmt->get_result();
@@ -120,7 +160,6 @@ $appQuery = "
         b.renter_id,
         b.move_in_date,
         b.status,
-        b.created_at,
         u.first_name,
         u.last_name,
         u.email,
@@ -129,10 +168,17 @@ $appQuery = "
     JOIN users u ON b.renter_id = u.id
     JOIN dorms d ON b.dorm_id = d.dorm_id
     WHERE d.owner_id = ?
-    ORDER BY b.created_at DESC
+    ORDER BY b.booking_id DESC
 ";
 
 $appStmt = $conn->prepare($appQuery);
+if (!$appStmt) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Query preparation failed (applications): ' . $conn->error]);
+    exit();
+}
+
 $appStmt->bind_param('i', $owner_id);
 $appStmt->execute();
 $appResult = $appStmt->get_result();
@@ -177,7 +223,7 @@ if (isset($_GET['json'])) {
             'pending' => $pendingApplications,
             'bookings' => $bookings
         ]
-    ]);
+    ], JSON_INVALID_UTF8_SUBSTITUTE);
     exit;
 }
 

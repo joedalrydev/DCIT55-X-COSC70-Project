@@ -1324,10 +1324,27 @@
       function loadDashboardData() {
         fetch('admin-dashboard.php?json=1')
           .then(res => {
-            if (!res.ok) throw new Error(res.statusText);
-            return res.json();
+            return res.text().then(text => {
+              let data;
+              try {
+                data = JSON.parse(text);
+              } catch (e) {
+                // Fallback: extract raw server error text if JSON fails
+                let rawError = text ? text.replace(/<[^>]*>?/gm, '').trim().substring(0, 150) : res.statusText;
+                throw new Error(res.ok ? 'Invalid JSON response' : (rawError || res.statusText));
+              }
+              if (!res.ok) {
+                throw new Error(data.error || res.statusText);
+              }
+              return data;
+            });
           })
           .then(data => {
+            if (!data.success && data.error) {
+              document.getElementById('primaryDormName').textContent = 'Error: ' + data.error;
+              return;
+            }
+
             // Handle the empty state (when 0 dorms exist)
             if (!data.success || !data.dorms || data.dorms.length === 0) {
               allDorms = [];
@@ -1391,7 +1408,7 @@
           })
           .catch(err => {
             console.error('Failed to load dashboard data:', err);
-            document.getElementById('primaryDormName').textContent = 'Error loading data';
+            document.getElementById('primaryDormName').textContent = 'Error: ' + err.message;
           });
       }
 
