@@ -10,3 +10,15 @@ Stack trace:
 #0 C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php(135): mysqli->prepare('\r\n    SELECT \r\n...')
 #1 {main}
   thrown in C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php on line 135
+[03-Jun-2026 01:36:47 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'b.status' in 'field list' in C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php:135
+Stack trace:
+#0 C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php(135): mysqli->prepare('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php on line 135
+[03-Jun-2026 01:39:17 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'b.status' in 'field list' in C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php:135
+Stack trace:
+#0 C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php(135): mysqli->prepare('\r\n    SELECT \r\n...')
+#1 {main}
+  thrown in C:\xampp\htdocs\DCIT55-X-COSC70-Project\admin\admin-dashboard.php on line 135
+[03-Jun-2026 01:49:06 UTC] POST request received. POST data: {"action":"approve_booking","booking_id":"1"}
+[03-Jun-2026 01:49:06 UTC] Action extracted: 'approve_booking'

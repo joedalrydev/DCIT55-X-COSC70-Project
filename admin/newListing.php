@@ -43,15 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         $dorm_id = $conn->insert_id;
 
-<<<<<<< HEAD
-        // 1. Set the correct physical folder path (relative to this admin file)
-        $uploadDir = "../uploads/dorms/";
-
-        // Create the directory if it doesn't exist yet to prevent errors
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-=======
         if (!empty($amenities)) {
           $amenityQuery = "SELECT amenity_id FROM amenities WHERE amenity_name = ?";
           $amenityStmt = $conn->prepare($amenityQuery);
@@ -71,8 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           }
         }
 
-        $uploadDir = "../uploads/dorm_images/";
->>>>>>> 351e500b078690a8a757a2ce9b9e94688b14a308
+        $uploadDir = "../uploads/dorms/";
+        
+        // Ensure upload directory exists
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
 
         foreach ($_FILES['dorm_images']['tmp_name'] as $key => $tmp_name) {
             
@@ -90,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 if (move_uploaded_file($tmp_name, $targetFile)) {
                     
-                    // 2. Format the URL for the database so the homepage can read it!
+                    // Format the URL for the database so the homepage can read it!
                     // We save "uploads/dorms/filename.jpg" (No dots at the start)
                     $dbImageUrl = "uploads/dorms/" . $fileName;
 
@@ -104,7 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $imageStmt = $conn->prepare($imageQuery);
                     $imageStmt->bind_param("is", $dorm_id, $dbImageUrl);
                     $imageStmt->execute();
+                } else {
+                    error_log("Upload failed for file: " . $fileName . " Error: " . error_get_last()['message']);
                 }
+            } else {
+                error_log("Invalid file type for: " . $_FILES['dorm_images']['name'][$key]);
             }
         }
 
